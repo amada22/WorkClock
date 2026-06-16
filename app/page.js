@@ -1,65 +1,124 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+import {
+  BriefcaseBusiness,
+  CalendarDays,
+  Clock3,
+  LogOut,
+  Timer,
+  UserRound,
+} from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
+  const [now, setNow] = useState(() => new Date());
+  const user = {
+    name: "Alex Morgan",
+    role: "Employee",
+  };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const currentTime = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).format(now);
+
+  const currentDate = new Intl.DateTimeFormat("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(now);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="min-h-screen bg-muted/30">
+      <nav className="border-b bg-background">
+        <div className="mx-auto flex min-h-16 w-full max-w-6xl flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <Clock3 className="size-5" aria-hidden="true" />
+            </div>
+            <span className="text-lg font-semibold tracking-normal">Physioneed</span>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 sm:justify-end">
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-lg border bg-card">
+                <UserRound className="size-4" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-sm font-medium leading-none">{user.name}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{user.role}</p>
+              </div>
+            </div>
+
+            <Button variant="outline" size="sm">
+              <LogOut className="size-4" aria-hidden="true" />
+              Logout
+            </Button>
+          </div>
+        </div>
+      </nav>
+
+      <section className="mx-auto flex w-full max-w-6xl flex-col items-center px-6 py-12">
+        <div className="mb-8 text-center">
+          <p className="text-sm font-medium text-muted-foreground" suppressHydrationWarning>
+            {currentDate}
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          <h1
+            className="mt-3 text-5xl font-semibold tracking-normal sm:text-7xl"
+            suppressHydrationWarning
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            {currentTime}
+          </h1>
         </div>
-      </main>
-    </div>
+
+        <Button className="size-36 flex-col rounded-full border border-black text-base shadow-none transition-transform hover:scale-105 sm:size-40">
+          <Timer className="size-9" aria-hidden="true" />
+          <span className="mt-2 text-lg font-semibold">Clock In</span>
+          <span className="text-xs font-normal text-primary-foreground/75">Start shift</span>
+        </Button>
+
+        <div className="mt-12 grid w-full gap-4 md:grid-cols-3">
+          <article className="rounded-lg border bg-card p-5 shadow-sm">
+            <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-muted">
+              <Timer className="size-5" aria-hidden="true" />
+            </div>
+            <h2 className="text-sm font-medium">Today&apos;s Hours</h2>
+            <p className="mt-2 text-3xl font-semibold tracking-normal">0h 00m</p>
+            <p className="mt-1 text-sm text-muted-foreground">No active shift yet.</p>
+          </article>
+
+          <article className="rounded-lg border bg-card p-5 shadow-sm">
+            <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-muted">
+              <BriefcaseBusiness className="size-5" aria-hidden="true" />
+            </div>
+            <h2 className="text-sm font-medium">Shift Status</h2>
+            <p className="mt-2 text-3xl font-semibold tracking-normal">Ready</p>
+            <p className="mt-1 text-sm text-muted-foreground">You can clock in now.</p>
+          </article>
+
+          <article className="rounded-lg border bg-card p-5 shadow-sm">
+            <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-muted">
+              <CalendarDays className="size-5" aria-hidden="true" />
+            </div>
+            <h2 className="text-sm font-medium">Next Break</h2>
+            <p className="mt-2 text-3xl font-semibold tracking-normal">--:--</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Break time appears after clock in.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
   );
 }
