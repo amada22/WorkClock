@@ -156,8 +156,36 @@ export default function Home() {
 
   async function handleMainAction() {
     if (status === "ready") {
-      await runShiftAction("/api/shifts/start");
+      navigator.geolocation.getCurrentPosition(
+  async (position) => {
+    const response = await fetch("/api/shifts/start", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setError(data.message ?? "Could not start shift.");
       return;
+    }
+
+    setShift(data.shift);
+    setStatus(data.status);
+  },
+  () => {
+    setError("Please allow location access to start your shift.");
+  }
+);
+
+return;
+  
     }
 
     if (status === "break") {

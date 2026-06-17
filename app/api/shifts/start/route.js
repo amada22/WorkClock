@@ -8,8 +8,7 @@ import {
   serializeShift,
 } from "@/lib/shifts";
 import { getSessionUser } from "@/lib/session";
-
-export async function POST() {
+export async function POST(request) {
   const user = await getSessionUser();
 
   if (!user) {
@@ -25,7 +24,13 @@ export async function POST() {
     );
   }
 
-  const shift = await createShift(user.id);
+  const { latitude, longitude } = await request.json();
+
+  const shift = await createShift(
+    user.id,
+    latitude,
+    longitude
+  );
 
   return NextResponse.json({
     shift: serializeShift(shift),
