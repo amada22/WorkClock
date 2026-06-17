@@ -2,9 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Clock3, LogOut } from "lucide-react";
+import { Clock3, LogOut, Calendar as CalendarIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 import {
   Table,
@@ -22,6 +28,8 @@ import {
   CardContent,
 } from "@/components/ui/card";
 
+/* ---------------- helpers ---------------- */
+
 function formatTime(value) {
   if (!value) return "--";
 
@@ -31,20 +39,34 @@ function formatTime(value) {
   });
 }
 
+/* ---------------- page ---------------- */
+
 export default function ShiftsPage() {
   const router = useRouter();
-  const [shifts, setShifts] = useState([]);
 
-  useEffect(() => {
-    fetch("/api/shifts/all")
-      .then((res) => res.json())
-      .then(setShifts);
-  }, []);
+  const [shifts, setShifts] = useState([]);
+  const [date, setDate] = useState(new Date());
+  const [loading, setLoading] = useState(true);
+
+ useEffect(() => {
+  async function load() {
+    setLoading(true);
+
+    const res = await fetch(
+      `/api/shifts/all?date=${date.toISOString().split("T")[0]}`
+    );
+
+    const data = await res.json();
+    setShifts(data.shifts || []);
+
+    setLoading(false);
+  }
+
+  load();
+}, [date]);
 
   async function handleLogout() {
-    await fetch("/api/auth/logout", {
-      method: "POST",
-    });
+    await fetch("/api/auth/logout", { method: "POST" });
 
     router.push("/login");
     router.refresh();
@@ -52,23 +74,20 @@ export default function ShiftsPage() {
 
   return (
     <main className="min-h-screen bg-muted/30">
+
+      {/* NAVBAR (kept as you want) */}
       <nav className="border-b bg-background">
-        <div className="mx-auto flex min-h-16 w-full max-w-6xl flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex min-h-16 w-full max-w-6xl items-center justify-between px-6 py-4">
+
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Clock3 className="size-5" />
             </div>
-
-            <span className="text-lg font-semibold">
-              Physioneed
-            </span>
+            <span className="text-lg font-semibold">Physioneed</span>
           </div>
 
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={() => router.push("/")}
-            >
+            <Button variant="outline" onClick={() => router.push("/")}>
               Dashboard
             </Button>
 
@@ -76,24 +95,48 @@ export default function ShiftsPage() {
               Shifts
             </Button>
 
-            <Button
-              variant="outline"
-              onClick={handleLogout}
-            >
+            <Button variant="outline" onClick={handleLogout}>
               <LogOut className="size-4 mr-2" />
               Logout
             </Button>
           </div>
+
         </div>
       </nav>
 
+      {/* CONTENT */}
       <section className="mx-auto w-full max-w-6xl px-6 py-10">
+
         <Card>
-          <CardHeader>
-            <CardTitle>Today's Shifts</CardTitle>
+
+          {/* HEADER WITH DATE FILTER */}
+          <CardHeader className="flex flex-row items-center justify-between">
+
+            <CardTitle>Shifts</CardTitle>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <CalendarIcon className="size-4" />
+                  {date.toLocaleDateString("en-GB")}
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+
           </CardHeader>
 
+          {/* TABLE */}
           <CardContent>
+
             <Table>
               <TableHeader>
                 <TableRow>
@@ -106,30 +149,37 @@ export default function ShiftsPage() {
               </TableHeader>
 
               <TableBody>
-                {shifts.map((shift) => (
-                  <TableRow key={shift.id}>
-                    <TableCell>{shift.name}</TableCell>
-                    <TableCell>{formatTime(shift.shift_start)}</TableCell>
-                    <TableCell>{formatTime(shift.break_start)}</TableCell>
-                    <TableCell>{formatTime(shift.break_end)}</TableCell>
-                    <TableCell>{formatTime(shift.shift_end)}</TableCell>
-                  </TableRow>
-                ))}
-
-                {shifts.length === 0 && (
+                {loading ? (
                   <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className="text-center text-muted-foreground"
-                    >
-                      No shifts found for today.
+                    <TableCell colSpan={5} className="text-center">
+                      Loading...
                     </TableCell>
                   </TableRow>
+                ) : shifts.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                      No shifts found for this date.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  shifts.map((shift) => (
+                    <TableRow key={shift.id}>
+                      <TableCell>{shift.name}</TableCell>
+                      <TableCell>{formatTime(shift.shift_start)}</TableCell>
+                      <TableCell>{formatTime(shift.break_start)}</TableCell>
+                      <TableCell>{formatTime(shift.break_end)}</TableCell>
+                      <TableCell>{formatTime(shift.shift_end)}</TableCell>
+                    </TableRow>
+                  ))
                 )}
               </TableBody>
+
             </Table>
+
           </CardContent>
+
         </Card>
+
       </section>
     </main>
   );
