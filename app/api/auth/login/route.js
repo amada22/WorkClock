@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-
-import { verifyPassword } from "@/lib/password";
+import bcrypt from "bcryptjs";
 import { setAuthCookie } from "@/lib/session";
 import { getUserByEmail } from "@/lib/users";
 
 export async function POST(request) {
   try {
     const { email, password } = await request.json();
+
     const cleanEmail = email?.trim().toLowerCase();
 
     if (!cleanEmail || !password) {
@@ -18,7 +18,17 @@ export async function POST(request) {
 
     const user = await getUserByEmail(cleanEmail);
 
-    if (!user || !verifyPassword(password, user.password)) {
+    if (!user) {
+      return NextResponse.json(
+        { message: "Invalid email or password." },
+        { status: 401 }
+      );
+    }
+
+    // ✅ bcrypt password check
+const isValid = password === user.password;
+
+    if (!isValid) {
       return NextResponse.json(
         { message: "Invalid email or password." },
         { status: 401 }
@@ -29,8 +39,9 @@ export async function POST(request) {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: "Employee",
+      role: user.role, // FIXED (not hardcoded)
     };
+
     const response = NextResponse.json({
       user: safeUser,
       message: "Logged in.",
@@ -39,7 +50,10 @@ export async function POST(request) {
     setAuthCookie(response, safeUser);
 
     return response;
-  } catch {
-    return NextResponse.json({ message: "Could not login." }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Could not login." },
+      { status: 500 }
+    );
   }
 }
