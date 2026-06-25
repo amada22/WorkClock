@@ -18,15 +18,26 @@ export async function POST(request) {
 
     const user = await getUserByEmail(cleanEmail);
 
-    if (!user) {
+    // ✅ prevent crash if user or password missing
+    if (!user || !user.password) {
       return NextResponse.json(
         { message: "Invalid email or password." },
         { status: 401 }
       );
     }
 
-    // ✅ bcrypt password check
-const isValid = password === user.password;
+    let isValid = false;
+
+    try {
+      isValid = await bcrypt.compare(password, user.password);
+      
+    } catch (err) {
+      console.error("bcrypt error:", err);
+      return NextResponse.json(
+        { message: "Login error. Please try again." },
+        { status: 500 }
+      );
+    }
 
     if (!isValid) {
       return NextResponse.json(
@@ -39,7 +50,7 @@ const isValid = password === user.password;
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role, // FIXED (not hardcoded)
+      role: user.role,
     };
 
     const response = NextResponse.json({
@@ -51,6 +62,8 @@ const isValid = password === user.password;
 
     return response;
   } catch (error) {
+    console.error("LOGIN API ERROR:", error);
+
     return NextResponse.json(
       { message: "Could not login." },
       { status: 500 }
