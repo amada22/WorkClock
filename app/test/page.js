@@ -1,9 +1,9 @@
+import db from "@/lib/db";
+
 export default async function Page() {
-  const db = (await import("@/lib/db")).default;
+  console.log("DB USER:", process.env.DB_USER);
+console.log("DB PASS:", process.env.DB_PASSWORD);
+  const [rows] = await db.query("SELECT * from users");
 
-  const [rows] = await db.query("SELECT * FROM users");
-
-  return (
-    <pre>{JSON.stringify(rows, null, 2)}</pre>
-  );
+  return <pre>{JSON.stringify(rows, null, 2)}</pre>;
 }

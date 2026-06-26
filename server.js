@@ -14,6 +14,6 @@ app.prepare().then(() => {
   https.createServer(httpsOptions, (req, res) => {
     handle(req, res);
   }).listen(3000, "0.0.0.0", () => {
-    console.log("HTTPS running on https://10.0.0.32:3000");
+    console.log("HTTPS running on https://localhost:3000");
   });
 });
