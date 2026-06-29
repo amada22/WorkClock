@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarDays, Clock3, Download, LogOut } from "lucide-react";
+import { CalendarDays, Clock3, Download, LogOut, MapPin } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +48,14 @@ function formatTime(value) {
 
 function isAdmin(user) {
   return user?.role?.toLowerCase() === "admin";
+}
+
+function getMapsUrl(latitude, longitude) {
+  if (!latitude || !longitude) {
+    return null;
+  }
+
+  return `https://www.google.com/maps?q=${encodeURIComponent(`${latitude},${longitude}`)}`;
 }
 
 export default function ShiftsPage() {
@@ -276,33 +284,50 @@ export default function ShiftsPage() {
                   <TableHead>Break Start</TableHead>
                   <TableHead>Break End</TableHead>
                   <TableHead>End</TableHead>
+                  <TableHead>Location</TableHead>
                 </TableRow>
               </TableHeader>
 
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center">
+                    <TableCell colSpan={7} className="text-center">
                       Loading...
                     </TableCell>
                   </TableRow>
                 ) : shifts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground">
                       {emptyMessage}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  shifts.map((shift) => (
-                    <TableRow key={shift.id}>
-                      <TableCell>{shift.name}</TableCell>
-                      <TableCell>{formatDate(shift.work_date)}</TableCell>
-                      <TableCell>{formatTime(shift.shift_start)}</TableCell>
-                      <TableCell>{formatTime(shift.break_start)}</TableCell>
-                      <TableCell>{formatTime(shift.break_end)}</TableCell>
-                      <TableCell>{formatTime(shift.shift_end)}</TableCell>
-                    </TableRow>
-                  ))
+                  shifts.map((shift) => {
+                    const mapsUrl = getMapsUrl(shift.start_latitude, shift.start_longitude);
+
+                    return (
+                      <TableRow key={shift.id}>
+                        <TableCell>{shift.name}</TableCell>
+                        <TableCell>{formatDate(shift.work_date)}</TableCell>
+                        <TableCell>{formatTime(shift.shift_start)}</TableCell>
+                        <TableCell>{formatTime(shift.break_start)}</TableCell>
+                        <TableCell>{formatTime(shift.break_end)}</TableCell>
+                        <TableCell>{formatTime(shift.shift_end)}</TableCell>
+                        <TableCell>
+                          {mapsUrl ? (
+                            <Button variant="link" className="h-auto p-0" asChild>
+                              <a href={mapsUrl} target="_blank" rel="noreferrer">
+                                <MapPin className="size-4" aria-hidden="true" />
+                                Open map
+                              </a>
+                            </Button>
+                          ) : (
+                            <span className="text-muted-foreground">No location</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>

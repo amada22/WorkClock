@@ -45,7 +45,9 @@ export async function GET(req) {
         shifts.shift_start,
         shifts.break_start,
         shifts.break_end,
-        shifts.shift_end
+        shifts.shift_end,
+        shifts.start_latitude,
+        shifts.start_longitude
       FROM shifts
       INNER JOIN users
         ON users.id = shifts.user_id

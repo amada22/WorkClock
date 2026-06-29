@@ -54,6 +54,14 @@ function formatDate(value) {
   return date.toISOString().split("T")[0];
 }
 
+function getMapsUrl(latitude, longitude) {
+  if (!latitude || !longitude) {
+    return "";
+  }
+
+  return `https://www.google.com/maps?q=${encodeURIComponent(`${latitude},${longitude}`)}`;
+}
+
 export async function GET(req) {
   try {
     const user = await getSessionUser();
@@ -83,7 +91,9 @@ export async function GET(req) {
         shifts.shift_start,
         shifts.break_start,
         shifts.break_end,
-        shifts.shift_end
+        shifts.shift_end,
+        shifts.start_latitude,
+        shifts.start_longitude
       FROM shifts
       INNER JOIN users
         ON users.id = shifts.user_id
@@ -95,17 +105,22 @@ export async function GET(req) {
 
     const tableRows = rows
       .map(
-        (shift) => `
-          <tr>
-            <td>${escapeHtml(shift.name)}</td>
-            <td>${escapeHtml(shift.email)}</td>
-            <td>${escapeHtml(formatDate(shift.work_date))}</td>
-            <td>${escapeHtml(formatTime(shift.shift_start))}</td>
-            <td>${escapeHtml(formatTime(shift.break_start))}</td>
-            <td>${escapeHtml(formatTime(shift.break_end))}</td>
-            <td>${escapeHtml(formatTime(shift.shift_end))}</td>
-          </tr>
-        `
+        (shift) => {
+          const mapsUrl = getMapsUrl(shift.start_latitude, shift.start_longitude);
+
+          return `
+            <tr>
+              <td>${escapeHtml(shift.name)}</td>
+              <td>${escapeHtml(shift.email)}</td>
+              <td>${escapeHtml(formatDate(shift.work_date))}</td>
+              <td>${escapeHtml(formatTime(shift.shift_start))}</td>
+              <td>${escapeHtml(formatTime(shift.break_start))}</td>
+              <td>${escapeHtml(formatTime(shift.break_end))}</td>
+              <td>${escapeHtml(formatTime(shift.shift_end))}</td>
+              <td>${mapsUrl ? `<a href="${escapeHtml(mapsUrl)}">Open map</a>` : "No location"}</td>
+            </tr>
+          `;
+        }
       )
       .join("");
 
@@ -141,6 +156,7 @@ export async function GET(req) {
                 <th>Break Start</th>
                 <th>Break End</th>
                 <th>Shift End</th>
+                <th>Location</th>
               </tr>
             </thead>
             <tbody>${tableRows}</tbody>
