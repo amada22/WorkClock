@@ -51,8 +51,12 @@ function getLiveWorkedMilliseconds(shift, status, now) {
   }
 
   const shiftStart = new Date(shift.shift_start).getTime();
-  const shiftEnd = shift.shift_end ? new Date(shift.shift_end).getTime() : now.getTime();
-  const breakStart = shift.break_start ? new Date(shift.break_start).getTime() : null;
+  const shiftEnd = shift.shift_end
+    ? new Date(shift.shift_end).getTime()
+    : now.getTime();
+  const breakStart = shift.break_start
+    ? new Date(shift.break_start).getTime()
+    : null;
   const breakEnd = shift.break_end ? new Date(shift.break_end).getTime() : null;
   let breakMilliseconds = 0;
 
@@ -73,7 +77,9 @@ function getLiveBreakMilliseconds(shift, now) {
   }
 
   const breakStart = new Date(shift.break_start).getTime();
-  const breakEnd = shift.break_end ? new Date(shift.break_end).getTime() : now.getTime();
+  const breakEnd = shift.break_end
+    ? new Date(shift.break_end).getTime()
+    : now.getTime();
 
   return Math.max(0, breakEnd - breakStart);
 }
@@ -157,44 +163,47 @@ export default function Home() {
   async function handleMainAction() {
     if (status === "ready") {
       navigator.geolocation.getCurrentPosition(
-  async (position) => {
-    const response = await fetch("/api/shifts/start", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-      }),
-    });
+        async (position) => {
+          const response = await fetch("/api/shifts/start", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            }),
+          });
 
-    const data = await response.json();
+          const data = await response.json();
 
-    if (!response.ok) {
-      setError(data.message ?? "Could not start shift.");
-      return;
-    }
+          if (!response.ok) {
+            setError(data.message ?? "Could not start shift.");
+            return;
+          }
 
-    setShift(data.shift);
-    setStatus(data.status);
-  },
-  () => {
-    setError("Please allow location access to start your shift.");
-  }
-);
+          setShift(data.shift);
+          setStatus(data.status);
+        },
+        () => {
+          setError("Please allow location access to start your shift.");
+        },
+      );
 
-return;
-  
-    }
-
-    if (status === "break") {
-      await runShiftAction("/api/shifts/break/end");
       return;
     }
 
     if (status === "working") {
-      await runShiftAction("/api/shifts/end");
+      if (!shift?.break_start) {
+        await runShiftAction("/api/shifts/break/start");
+      } else {
+        await runShiftAction("/api/shifts/end");
+      }
+      return;
+    }
+
+    if (status === "break") {
+      await runShiftAction("/api/shifts/break/end");
     }
   }
 
@@ -232,45 +241,45 @@ return;
 
   const workedMilliseconds = useMemo(
     () => getLiveWorkedMilliseconds(shift, status, now),
-    [shift, status, now]
+    [shift, status, now],
   );
   const breakMilliseconds = useMemo(
     () => getLiveBreakMilliseconds(shift, now),
-    [shift, now]
+    [shift, now],
   );
 
   const statusCopy = {
     ready: {
       title: "Ready",
-      detail: "You can clock in now.",
-      mainLabel: "Clock In",
-      subLabel: "Start shift",
+      detail: "You can start your shift.",
+      mainLabel: "Start Shift",
     },
     working: {
       title: "Working",
       detail: `Started at ${formatTime(shift?.shift_start)}.`,
-      mainLabel: "Clock Out",
-      subLabel: "End shift",
+      mainLabel: shift?.break_start ? "End Shift" : "Start Break",
     },
     break: {
       title: "On Break",
       detail: `Break started at ${formatTime(shift?.break_start)}.`,
       mainLabel: "End Break",
-      subLabel: "Resume work",
     },
     finished: {
       title: "Finished",
       detail: `Ended at ${formatTime(shift?.shift_end)}.`,
       mainLabel: "Done",
-      subLabel: "Shift complete",
     },
   }[status];
 
-  const canUseMainButton = !isLoading && !isActionLoading && status !== "finished";
+  const canUseMainButton =
+    !isLoading && !isActionLoading && status !== "finished";
   const canUseBreakButton =
-    !isLoading && !isActionLoading && (status === "working" || status === "break");
+    !isLoading &&
+    !isActionLoading &&
+    (status === "working" || status === "break");
   const activeTimerLabel = status === "break" ? "Break Time" : "Work Time";
-  const activeTimer = status === "break" ? breakMilliseconds : workedMilliseconds;
+  const activeTimer =
+    status === "break" ? breakMilliseconds : workedMilliseconds;
 
   return (
     <main className="min-h-screen bg-muted/30">
@@ -280,7 +289,9 @@ return;
             <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Clock3 className="size-5" aria-hidden="true" />
             </div>
-            <span className="text-lg font-semibold tracking-normal">Physioneed</span>
+            <span className="text-lg font-semibold tracking-normal">
+              Physioneed
+            </span>
           </div>
 
           <div className="flex items-center justify-between gap-3 sm:justify-end">
@@ -304,7 +315,11 @@ return;
             </Button>
 
             {isAdmin(user) ? (
-              <Button variant="default" size="sm" onClick={() => router.push("/shifts")}>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => router.push("/shifts")}
+              >
                 <CalendarDays className="size-4" aria-hidden="true" />
                 Shifts
               </Button>
@@ -315,7 +330,10 @@ return;
 
       <section className="mx-auto flex w-full max-w-6xl flex-col items-center px-6 py-12">
         <div className="mb-8 text-center">
-          <p className="text-sm font-medium text-muted-foreground" suppressHydrationWarning>
+          <p
+            className="text-sm font-medium text-muted-foreground"
+            suppressHydrationWarning
+          >
             {currentDate}
           </p>
           <h1
@@ -350,7 +368,7 @@ return;
           </span>
         </Button>
 
-        <div className="mt-5 flex flex-wrap justify-center gap-3">
+        {/* <div className="mt-5 flex flex-wrap justify-center gap-3">
           <Button
             variant="outline"
             className="h-10"
@@ -360,7 +378,7 @@ return;
             <Coffee className="size-4" aria-hidden="true" />
             {status === "break" ? "End Break" : "Start Break"}
           </Button>
-        </div>
+        </div> */}
 
         {error ? (
           <p className="mt-5 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -395,7 +413,9 @@ return;
             <p className="mt-2 text-3xl font-semibold tracking-normal">
               {statusCopy.title}
             </p>
-            <p className="mt-1 text-sm text-muted-foreground">{statusCopy.detail}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {statusCopy.detail}
+            </p>
           </article>
 
           <article className="rounded-lg border bg-card p-5 shadow-sm">
