@@ -113,6 +113,22 @@ export async function GET(req) {
       <html>
         <head>
           <meta charset="utf-8" />
+          <style>
+            table {
+              border-collapse: collapse;
+            }
+
+            th,
+            td {
+              border: 1px solid #000000;
+              padding: 6px 10px;
+            }
+
+            th {
+              background-color: #e8e8f8;
+              font-weight: bold;
+            }
+          </style>
         </head>
         <body>
           <table>
