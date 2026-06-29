@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { setAuthCookie } from "@/lib/session";
 import { getUserByEmail } from "@/lib/users";
+import { verifyPassword } from "@/lib/password";
 
 export async function POST(request) {
   try {
@@ -26,14 +27,14 @@ export async function POST(request) {
       );
     }
 
-    let isValid = false;
+    let isValid;
 
     try {
-      // isValid = await bcrypt.compare(password, user.password);
-      isValid = true;
-      
+      isValid = user.password.startsWith("$2")
+        ? await bcrypt.compare(password, user.password)
+        : verifyPassword(password, user.password);
     } catch (err) {
-      console.error("bcrypt error:", err);
+      console.error("password verify error:", err);
       return NextResponse.json(
         { message: "Login error. Please try again." },
         { status: 500 }
