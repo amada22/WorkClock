@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   BriefcaseBusiness,
+  CalendarDays,
   Clock3,
   Coffee,
   LogOut,
@@ -38,6 +39,10 @@ function formatTime(value) {
   if (!value) return "--:--";
 
   return value.slice(0, 5);
+}
+
+function isAdmin(user) {
+  return user?.role?.toLowerCase() === "admin";
 }
 
 function getLiveWorkedMilliseconds(shift, status, now) {
@@ -297,6 +302,13 @@ return;
               <LogOut className="size-4" aria-hidden="true" />
               Logout
             </Button>
+
+            {isAdmin(user) ? (
+              <Button variant="default" size="sm" onClick={() => router.push("/shifts")}>
+                <CalendarDays className="size-4" aria-hidden="true" />
+                Shifts
+              </Button>
+            ) : null}
           </div>
         </div>
       </nav>
