@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -286,12 +287,15 @@ export default function Home() {
       <nav className="border-b bg-background">
         <div className="mx-auto flex min-h-16 w-full max-w-6xl flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Clock3 className="size-5" aria-hidden="true" />
+            <div className="flex w-20 h-16 items-center justify-center overflow-hidden rounded-lg">
+              <Image
+                src="/logo.png"
+                alt="Physioneed Logo"
+                width={250}
+                height={250}
+                className="object-contain w-full h-full"
+              />
             </div>
-            <span className="text-lg font-semibold tracking-normal">
-              Physioneed
-            </span>
           </div>
 
           <div className="flex items-center justify-between gap-3 sm:justify-end">
@@ -308,12 +312,6 @@ export default function Home() {
                 </p>
               </div>
             </div>
-
-            <Button variant="outline" size="sm" onClick={handleLogout}>
-              <LogOut className="size-4" aria-hidden="true" />
-              Logout
-            </Button>
-
             {isAdmin(user) ? (
               <Button
                 variant="default"
@@ -324,6 +322,12 @@ export default function Home() {
                 Shifts
               </Button>
             ) : null}
+
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="size-4" aria-hidden="true" />
+              Logout
+            </Button>
+
           </div>
         </div>
       </nav>
